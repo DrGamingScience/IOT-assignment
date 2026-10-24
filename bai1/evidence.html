@@ -1,0 +1,28 @@
+<!doctype html><html lang="vi"><meta charset="utf-8">
+<title>Bài 1 | Kết quả client Python</title>
+<style>body{background:#edf2f7;color:#162535;font:16px Arial;margin:0}
+main{max-width:1000px;margin:42px auto;padding:0 28px}h1{font-size:32px}
+.label{font-size:13px;color:#426788;font-weight:bold;letter-spacing:1px}
+p{color:#526477;line-height:1.6}pre{background:#172b3e;color:#e1edf7;border-radius:12px;
+padding:24px;white-space:pre-wrap;font:16px Consolas,monospace;line-height:1.7}
+.checks{background:white;color:#126a71;border:1px solid #dce5ee;font-size:14px}
+.note{font-size:14px}</style><main>
+<div class="label">BÀI 1 / PHẦN 1 / KẾT QUẢ CHẠY THỰC TẾ</div>
+<h1>Client Python nhận dữ liệu từ server</h1>
+<p>Đầu ra được lưu từ tiến trình chạy <b>client.py</b> bằng Python.<br>
+Thời điểm kiểm tra: 09/10/2026 10:42:32 (UTC+7)</p>
+<pre>python client.py --url http://127.0.0.1:8000/api/sensor
+
+Request: GET http://127.0.0.1:8000/api/sensor
+HTTP status: 200 OK
+JSON: {&quot;temperature&quot;: 23, &quot;humidity&quot;: 33}
+Nhiet do (temperature): 23 do C
+Do am (humidity): 33%
+</pre>
+<h2>Kiểm tra kết quả</h2><pre class="checks">PASS: GET /api/sensor -&gt; 200 OK, Content-Type application/json
+PASS: JSON temperature=23, humidity=33
+PASS: Client Python GET, parse JSON, hien thi 23 do C va 33%
+PASS: Endpoint sai -&gt; HTTP 404, client thoat voi ma 1
+</pre>
+<p class="note">Ảnh chụp trang này thể hiện log chạy thật đã lưu; đây là trang trình duyệt hiển thị log, không phải ảnh cửa sổ terminal. Dữ liệu cảm biến là mẫu cố định 23°C và 33%.</p>
+</main></html>

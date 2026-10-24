@@ -1,0 +1,58 @@
+{
+  "info": {
+    "name": "Bai 2 - ThingSpeak HTTP API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.thingspeak.com"
+    },
+    {
+      "key": "write_api_key",
+      "value": "T7H40F0X82VGW7L5"
+    },
+    {
+      "key": "channel_id",
+      "value": "1529099"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. GET - gui field1, field2 trong URL",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/update?api_key={{write_api_key}}&field1=20&field2=33"
+      }
+    },
+    {
+      "name": "2. POST - gui field1, field2 trong JSON",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"field1\": 20,\n  \"field2\": 33\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/update?api_key={{write_api_key}}"
+      }
+    },
+    {
+      "name": "3. GET - doc 2 ban ghi moi nhat",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/channels/{{channel_id}}/feeds.json?results=2"
+      }
+    }
+  ]
+}

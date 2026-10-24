@@ -1,0 +1,11 @@
+{
+  "source": "D:\\IOT-asm\\bai2_2\\Bao_cao_Bai_2_2_MQTT_Nguyen_Tri_Hieu_202416203_Hoan_chinh.docx",
+  "source_hash": "02242fb036f29ea61719bb1cba1641bb1271da0219ae63a520b8de96a4e12206",
+  "candidate": "D:\\IOT-asm\\tmp\\bai2_2_hinh3\\checked.docx",
+  "figure3_text": [
+    "Hình 3 Java nhận và phân tích JSON gửi từ MQTTX",
+    "MQTTX publish bản tin JSON lên it4735e/202416203/telemetry với QoS 1. Payload kiểm thử gồm id=11, name=mqttx, packet_no=1, temperature=25, humidity=55, tds=900 và pH=6.5. Thẻ Published màu xanh trong MQTTX hiển thị bản tin đã gửi.",
+    "Terminal Java hiển thị Received trên cùng topic và đọc đủ bảy trường với các giá trị trùng khớp payload, trong đó name=mqttx và packet_no=1 phân biệt bản tin kiểm thử với telemetry do Java tự gửi. Kết quả xác nhận chương trình nhận bản tin từ client MQTTX qua HiveMQ và phân tích JSON để hiển thị dữ liệu."
+  ],
+  "all_other_text_and_images_preserved": true
+}

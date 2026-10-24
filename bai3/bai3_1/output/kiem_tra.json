@@ -1,0 +1,26 @@
+﻿{
+    "group":  16,
+    "status":  "PASS",
+    "before":  {
+                   "time":  "2026-10-23T10:55:09.3717180+07:00",
+                   "queue":  "it4735.nhom16.telemetry",
+                   "ready":  0,
+                   "unacked":  0,
+                   "consumers":  1
+               },
+    "stopped_30_seconds":  {
+                               "time":  "2026-10-23T10:55:48.7410834+07:00",
+                               "queue":  "it4735.nhom16.telemetry",
+                               "ready":  6,
+                               "unacked":  0,
+                               "consumers":  0
+                           },
+    "resumed":  {
+                    "time":  "2026-10-23T10:56:01.9821589+07:00",
+                    "queue":  "it4735.nhom16.telemetry",
+                    "ready":  0,
+                    "unacked":  0,
+                    "consumers":  1
+                },
+    "invalid_then_valid":  "PASS"
+}

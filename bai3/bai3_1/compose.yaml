@@ -1,0 +1,45 @@
+name: bai3-nhom16
+
+x-app: &app
+  build: .
+  image: bai3-nhom16-app:local
+  environment:
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_USER: ${RABBITMQ_USER:-nhom16}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Hay copy .env.example thanh .env truoc khi chay}
+    QUEUE_NAME: it4735.nhom16.telemetry
+    INTERVAL_SECONDS: "5"
+  depends_on:
+    rabbitmq:
+      condition: service_healthy
+  restart: unless-stopped
+  stop_grace_period: 10s
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.4.0-management
+    hostname: rabbitmq-nhom16
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-nhom16}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Hay copy .env.example thanh .env truoc khi chay}
+    ports:
+      - "127.0.0.1:${AMQP_PORT:-5672}:5672"
+      - "127.0.0.1:${MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 15s
+    restart: unless-stopped
+  producer:
+    <<: *app
+    command: ["python", "-u", "producer.py"]
+  consumer:
+    <<: *app
+    command: ["python", "-u", "consumer.py"]
+
+volumes:
+  rabbitmq_data:

@@ -1,0 +1,12 @@
+GET /update | field1=20, field2=33
+Loi gui GET: <urlopen error [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions>
+
+Cho 16 giay truoc lan gui tiep theo...
+POST /update | field1=20, field2=33
+Content-Type: application/json
+Body: {"field1": 20, "field2": 33}
+Loi gui POST: <urlopen error [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions>
+
+Doc 2 ban ghi moi nhat:
+GET /channels/1529099/feeds.json?results=2
+Loi doc du lieu: <urlopen error [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions>

@@ -1,0 +1,5 @@
+Request: GET http://127.0.0.1:8000/api/sensor
+HTTP status: 200 OK
+JSON: {"temperature": 23, "humidity": 33}
+Nhiet do (temperature): 23 do C
+Do am (humidity): 33%

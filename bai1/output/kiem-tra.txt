@@ -1,0 +1,4 @@
+PASS: GET /api/sensor -> 200 OK, Content-Type application/json
+PASS: JSON temperature=23, humidity=33
+PASS: Client Python GET, parse JSON, hien thi 23 do C va 33%
+PASS: Endpoint sai -> HTTP 404, client thoat voi ma 1

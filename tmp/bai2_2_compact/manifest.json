@@ -1,0 +1,24 @@
+{
+  "source": "D:\\IOT-asm\\bai2_2\\Bao_cao_Bai_2_2_MQTT_Nguyen_Tri_Hieu_202416203_Hoan_chinh.docx",
+  "source_hash": "c2cf8d1205ff38d928b28471d29d9e8a76ba38b20502e62ee273d8df3bbf9a35",
+  "candidate": "D:\\IOT-asm\\tmp\\bai2_2_compact\\compact.docx",
+  "files": [
+    {
+      "file": "ClientConfig.java",
+      "source_lines": 66,
+      "explanation_paragraphs": 3
+    },
+    {
+      "file": "Telemetry.java",
+      "source_lines": 50,
+      "explanation_paragraphs": 4
+    },
+    {
+      "file": "MqttAssignment.java",
+      "source_lines": 234,
+      "explanation_paragraphs": 8
+    }
+  ],
+  "all_source_lines_preserved": true,
+  "intro_and_photo_section_preserved": true
+}

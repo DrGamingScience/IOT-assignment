@@ -1,0 +1,57 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261023105504
+Username: DRGAMING\nguye
+RunAs User: DRGAMING\nguye
+Configuration Name: 
+Machine: DRGAMING (Microsoft Windows NT 10.0.26300.0)
+Host Application: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
+Process ID: 25416
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+
+
+Waiting 30 seconds with consumer stopped...
+
+
+consumer-1  | 2026-10-23 03:56:02,164 | JSON ERROR | Expecting value: line 1 column 1 (char 0) | payload=b'hello' | continuing
+consumer-1  | 2026-10-23 03:56:02,175 | RECEIVED | queue=it4735.nhom16.telemetry | temperature=23 C | humidity=33 % | redelivered=False
+{
+    "group":  16,
+    "status":  "PASS",
+    "before":  {
+                   "time":  "2026-10-23T10:55:09.3717180+07:00",
+                   "queue":  "it4735.nhom16.telemetry",
+                   "ready":  0,
+                   "unacked":  0,
+                   "consumers":  1
+               },
+    "stopped_30_seconds":  {
+                               "time":  "2026-10-23T10:55:48.7410834+07:00",
+                               "queue":  "it4735.nhom16.telemetry",
+                               "ready":  6,
+                               "unacked":  0,
+                               "consumers":  0
+                           },
+    "resumed":  {
+                    "time":  "2026-10-23T10:56:01.9821589+07:00",
+                    "queue":  "it4735.nhom16.telemetry",
+                    "ready":  0,
+                    "unacked":  0,
+                    "consumers":  1
+                },
+    "invalid_then_valid":  "PASS"
+}
+
+**********************
+Windows PowerShell transcript end
+End time: 20261023105606
+**********************

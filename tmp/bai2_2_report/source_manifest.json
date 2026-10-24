@@ -1,0 +1,110 @@
+[
+  {
+    "file": "ClientConfig.java",
+    "start": 1,
+    "end": 24,
+    "source": "package vn.edu.iot;\n\nimport java.net.URI;\n\n/** Command-line options; MSSV is required so no one accidentally uses a shared topic. */\npublic record ClientConfig(String studentId, String broker, int intervalSeconds) {\n    public static final String DEFAULT_BROKER = \"tcp://broker.hivemq.com:1883\";\n\n    public ClientConfig {\n        if (studentId == null || !studentId.matches(\"[A-Za-z0-9_-]+\")) {\n            throw new IllegalArgumentException(\"MSSV must contain only letters, digits, '_' or '-'.\");\n        }\n        if (intervalSeconds < 1) {\n            throw new IllegalArgumentException(\"Interval must be a positive number of seconds.\");\n        }\n        URI uri = URI.create(broker);\n        if (!\"tcp\".equals(uri.getScheme()) || uri.getHost() == null\n                || uri.getPort() < 1 || uri.getPort() > 65535\n                || uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null\n                || (uri.getPath() != null && !uri.getPath().isEmpty())) {\n            throw new IllegalArgumentException(\"Broker must be tcp://host:port (for example, \"\n                    + DEFAULT_BROKER + \").\");\n        }\n    }\n"
+  },
+  {
+    "file": "ClientConfig.java",
+    "start": 25,
+    "end": 53,
+    "source": "\n    public static ClientConfig parse(String[] args) {\n        String studentId = null;\n        String broker = DEFAULT_BROKER;\n        int interval = 5;\n        for (int i = 0; i < args.length; i++) {\n            String option = args[i];\n            if (!option.equals(\"--mssv\") && !option.equals(\"--broker\") && !option.equals(\"--interval\")) {\n                throw new IllegalArgumentException(\"Unknown option: \" + option);\n            }\n            if (i + 1 == args.length || args[i + 1].startsWith(\"--\")) {\n                throw new IllegalArgumentException(\"Missing value for \" + option);\n            }\n            String value = args[++i];\n            switch (option) {\n                case \"--mssv\" -> studentId = value;\n                case \"--broker\" -> broker = value;\n                case \"--interval\" -> {\n                    try {\n                        interval = Integer.parseInt(value);\n                    } catch (NumberFormatException e) {\n                        throw new IllegalArgumentException(\"Interval must be a positive integer.\");\n                    }\n                }\n                default -> throw new IllegalArgumentException(\"Unknown option: \" + option);\n            }\n        }\n        return new ClientConfig(studentId, broker, interval);\n    }\n"
+  },
+  {
+    "file": "ClientConfig.java",
+    "start": 54,
+    "end": 66,
+    "source": "\n    public String telemetryTopic() {\n        return \"it4735e/\" + studentId + \"/telemetry\";\n    }\n\n    public String subscriptionTopic() {\n        return \"it4735e/\" + studentId + \"/#\";\n    }\n\n    public String statusTopic() {\n        return \"it4735e/\" + studentId + \"/status\";\n    }\n}\n"
+  },
+  {
+    "file": "Telemetry.java",
+    "start": 1,
+    "end": 18,
+    "source": "package vn.edu.iot;\n\nimport java.util.Locale;\nimport java.util.concurrent.ThreadLocalRandom;\nimport org.json.JSONException;\nimport org.json.JSONObject;\nimport org.json.JSONTokener;\n\n/** The seven fields required by Part 2. Sensor readings are simulated. */\npublic record Telemetry(long id, String name, long packetNo, double temperature,\n                        double humidity, double tds, double pH) {\n    public static Telemetry sample(long packetNo) {\n        ThreadLocalRandom random = ThreadLocalRandom.current();\n        return new Telemetry(11, \"my-java-mqtt-client\", packetNo,\n                Math.round(random.nextDouble(20, 35) * 10) / 10.0,\n                random.nextInt(40, 76), random.nextInt(800, 1201),\n                Math.round(random.nextDouble(5, 7) * 10) / 10.0);\n    }\n"
+  },
+  {
+    "file": "Telemetry.java",
+    "start": 19,
+    "end": 30,
+    "source": "\n    public String toJson() {\n        return new JSONObject()\n                .put(\"id\", id)\n                .put(\"name\", name)\n                .put(\"packet_no\", packetNo)\n                .put(\"temperature\", temperature)\n                .put(\"humidity\", humidity)\n                .put(\"tds\", tds)\n                .put(\"pH\", pH)\n                .toString();\n    }\n"
+  },
+  {
+    "file": "Telemetry.java",
+    "start": 31,
+    "end": 42,
+    "source": "\n    public static Telemetry fromJson(String payload) {\n        JSONTokener tokens = new JSONTokener(payload);\n        JSONObject data = new JSONObject(tokens);\n        if (tokens.nextClean() != 0) {\n            throw new JSONException(\"Unexpected content after JSON object.\");\n        }\n        // Required getters also reject missing fields and incompatible types.\n        return new Telemetry(data.getLong(\"id\"), data.getString(\"name\"),\n                data.getLong(\"packet_no\"), data.getDouble(\"temperature\"),\n                data.getDouble(\"humidity\"), data.getDouble(\"tds\"), data.getDouble(\"pH\"));\n    }\n"
+  },
+  {
+    "file": "Telemetry.java",
+    "start": 43,
+    "end": 50,
+    "source": "\n    public String display() {\n        return String.format(Locale.ROOT,\n                \"id=%d, name=%s, packet_no=%d%n\"\n                        + \"   temperature=%.1f, humidity=%.1f, tds=%.1f, pH=%.1f\",\n                id, name, packetNo, temperature, humidity, tds, pH);\n    }\n}\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 1,
+    "end": 32,
+    "source": "package vn.edu.iot;\n\nimport java.nio.charset.StandardCharsets;\nimport java.util.Arrays;\nimport java.util.UUID;\nimport java.util.concurrent.CountDownLatch;\nimport java.util.concurrent.Executors;\nimport java.util.concurrent.RejectedExecutionException;\nimport java.util.concurrent.ScheduledExecutorService;\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.atomic.AtomicBoolean;\nimport org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;\nimport org.eclipse.paho.client.mqttv3.MqttAsyncClient;\nimport org.eclipse.paho.client.mqttv3.MqttCallbackExtended;\nimport org.eclipse.paho.client.mqttv3.MqttConnectOptions;\nimport org.eclipse.paho.client.mqttv3.MqttException;\nimport org.eclipse.paho.client.mqttv3.MqttMessage;\nimport org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;\nimport org.json.JSONException;\n\n/** One program performs both publishing and subscribing, including both optional extensions. */\npublic final class MqttAssignment implements AutoCloseable {\n    private static final int QOS = 1;\n    private static final long MQTT_TIMEOUT_MS = 15_000;\n    private final ClientConfig config;\n    private final MqttAsyncClient client;\n    private final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();\n    private final AtomicBoolean closing = new AtomicBoolean();\n    private final CountDownLatch stopped = new CountDownLatch(1);\n    private volatile boolean ready;\n    // Only the single worker thread changes this counter. It resets on a new program run.\n    private long nextPacketNo = 126;\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 33,
+    "end": 51,
+    "source": "\n    MqttAssignment(ClientConfig config) throws MqttException {\n        this.config = config;\n        String clientId = \"java-\" + UUID.randomUUID();\n        client = new MqttAsyncClient(config.broker(), clientId, new MemoryPersistence());\n        client.setCallback(new MqttCallbackExtended() {\n            @Override\n            public void connectComplete(boolean reconnect, String serverURI) {\n                ready = false;\n                System.out.println((reconnect ? \"Reconnected to \" : \"Connected to \") + serverURI);\n                // SUBACK/PUBACK must be awaited off the Paho callback thread.\n                try {\n                    worker.execute(MqttAssignment.this::prepareSession);\n                } catch (RejectedExecutionException e) {\n                    if (!closing.get()) {\n                        System.err.println(\"Cannot prepare session: \" + e.getMessage());\n                    }\n                }\n            }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 52,
+    "end": 74,
+    "source": "\n            @Override\n            public void connectionLost(Throwable cause) {\n                ready = false;\n                System.err.println(\"Connection lost: \" + (cause == null ? \"unknown reason\" : cause.getMessage())\n                        + \". Automatic reconnect is enabled; publishing is paused.\");\n            }\n\n            @Override\n            public void messageArrived(String topic, MqttMessage message) {\n                String payload = new String(message.getPayload(), StandardCharsets.UTF_8);\n                System.out.println(formatReceived(config.statusTopic(), topic, payload));\n            }\n\n            @Override\n            public void deliveryComplete(IMqttDeliveryToken token) {\n                // Publishing below waits for QoS 1 delivery confirmation on the worker thread.\n            }\n        });\n        System.out.println(\"Client ID: \" + clientId);\n        System.out.println(\"Telemetry topic: \" + config.telemetryTopic());\n        System.out.println(\"Press Ctrl+C to stop.\");\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 75,
+    "end": 86,
+    "source": "\n    private MqttConnectOptions connectionOptions() {\n        MqttConnectOptions options = new MqttConnectOptions();\n        options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);\n        options.setCleanSession(true);\n        options.setConnectionTimeout(10);\n        options.setKeepAliveInterval(15);\n        options.setAutomaticReconnect(true);\n        // The broker sends this retained message if the connection ends unexpectedly.\n        options.setWill(config.statusTopic(), \"offline\".getBytes(StandardCharsets.UTF_8), QOS, true);\n        return options;\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 87,
+    "end": 106,
+    "source": "\n    void run() throws InterruptedException {\n        // Paho's automatic reconnect handles losses AFTER a successful connection.\n        // Retry the first connection ourselves as well.\n        while (!closing.get() && !client.isConnected()) {\n            try {\n                client.connect(connectionOptions()).waitForCompletion(MQTT_TIMEOUT_MS);\n            } catch (MqttException e) {\n                if (closing.get()) {\n                    return;\n                }\n                System.err.println(\"Initial connection failed: \" + e.getMessage() + \". Retrying in 5 seconds.\");\n                Thread.sleep(5_000);\n            }\n        }\n        if (!closing.get()) {\n            worker.scheduleWithFixedDelay(this::publishTelemetry, 0, config.intervalSeconds(), TimeUnit.SECONDS);\n            stopped.await();\n        }\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 107,
+    "end": 131,
+    "source": "\n    private void prepareSession() {\n        if (closing.get() || !client.isConnected()) {\n            return;\n        }\n        try {\n            // Clean sessions lose subscriptions; repeat this on EVERY connectComplete callback.\n            var subscription = client.subscribe(config.subscriptionTopic(), QOS);\n            subscription.waitForCompletion(MQTT_TIMEOUT_MS);\n            if (subscription.getGrantedQos()[0] == 128) {\n                throw new MqttException(MqttException.REASON_CODE_SUBSCRIBE_FAILED);\n            }\n            System.out.println(\"Subscribed: \" + config.subscriptionTopic() + \" (QoS 1)\");\n            client.publish(config.statusTopic(), \"online\".getBytes(StandardCharsets.UTF_8), QOS, true)\n                    .waitForCompletion(MQTT_TIMEOUT_MS);\n            System.out.println(\">> Published retained online to \" + config.statusTopic());\n            ready = client.isConnected() && !closing.get();\n        } catch (MqttException e) {\n            ready = false;\n            System.err.println(\"Session setup failed: \" + e.getMessage());\n            if (!closing.get()) {\n                worker.schedule(this::prepareSession, 2, TimeUnit.SECONDS);\n            }\n        }\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 132,
+    "end": 149,
+    "source": "\n    private void publishTelemetry() {\n        if (closing.get() || !ready || !client.isConnected()) {\n            return;\n        }\n        Telemetry reading = Telemetry.sample(nextPacketNo);\n        try {\n            var delivery = client.publish(config.telemetryTopic(),\n                    reading.toJson().getBytes(StandardCharsets.UTF_8), QOS, false);\n            // Count a new accepted publish once, even if confirmation is delayed or duplicated.\n            nextPacketNo++;\n            delivery.waitForCompletion(MQTT_TIMEOUT_MS);\n            System.out.println(\">> Published packet_no=\" + reading.packetNo()\n                    + \" to \" + config.telemetryTopic() + \" (QoS 1 confirmed)\");\n        } catch (MqttException e) {\n            System.err.println(\"Publish not confirmed: \" + e.getMessage() + \". Program continues.\");\n        }\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 150,
+    "end": 161,
+    "source": "\n    /** Catch bad messages here so a JSON error never escapes into Paho's network callbacks. */\n    static String formatReceived(String statusTopic, String topic, String payload) {\n        if (topic.equals(statusTopic)) {\n            return \"<< Status on \" + topic + \": \" + payload;\n        }\n        try {\n            return \"<< Received on \" + topic + System.lineSeparator() + \"   \" + Telemetry.fromJson(payload).display();\n        } catch (JSONException e) {\n            return \"JSON error on \" + topic + \": \" + e.getMessage() + \" (continuing)\";\n        }\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 162,
+    "end": 193,
+    "source": "\n    @Override\n    public void close() {\n        if (!closing.compareAndSet(false, true)) {\n            return;\n        }\n        ready = false;\n        worker.shutdownNow();\n        try {\n            if (client.isConnected()) {\n                // A normal MQTT disconnect does not trigger Last Will; announce offline ourselves.\n                client.publish(config.statusTopic(), \"offline\".getBytes(StandardCharsets.UTF_8), QOS, true)\n                        .waitForCompletion(3_000);\n                client.disconnect(1_000).waitForCompletion(3_000);\n            }\n        } catch (MqttException e) {\n            System.err.println(\"Shutdown: \" + e.getMessage());\n        } finally {\n            try {\n                // Reset transport state even if a graceful disconnect failed.\n                client.disconnectForcibly(0, 1_000);\n            } catch (MqttException e) {\n                System.err.println(\"Disconnect cleanup: \" + e.getMessage());\n            }\n            try {\n                client.close(true);\n            } catch (MqttException e) {\n                System.err.println(\"Close cleanup: \" + e.getMessage());\n            }\n            stopped.countDown();\n        }\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 194,
+    "end": 228,
+    "source": "\n    public static void main(String[] args) {\n        if (Arrays.asList(args).contains(\"--help\")) {\n            usage();\n            return;\n        }\n        ClientConfig config;\n        try {\n            config = ClientConfig.parse(args);\n        } catch (IllegalArgumentException e) {\n            System.err.println(e.getMessage());\n            usage();\n            System.exit(2);\n            return;\n        }\n        try (MqttAssignment app = new MqttAssignment(config)) {\n            Thread shutdownHook = new Thread(app::close, \"mqtt-shutdown\");\n            Runtime.getRuntime().addShutdownHook(shutdownHook);\n            try {\n                app.run();\n            } finally {\n                app.close();\n                try {\n                    Runtime.getRuntime().removeShutdownHook(shutdownHook);\n                } catch (IllegalStateException ignored) {\n                    // The JVM is already running the shutdown hook.\n                }\n            }\n        } catch (InterruptedException e) {\n            Thread.currentThread().interrupt();\n        } catch (MqttException e) {\n            System.err.println(\"Cannot create MQTT client: \" + e.getMessage());\n            System.exit(1);\n        }\n    }\n"
+  },
+  {
+    "file": "MqttAssignment.java",
+    "start": 229,
+    "end": 234,
+    "source": "\n    private static void usage() {\n        System.out.println(\"Usage: java -jar mqtt-assignment-1.0.0.jar --mssv YOUR_MSSV\"\n                + \" [--interval 5] [--broker tcp://broker.hivemq.com:1883]\");\n    }\n}\n"
+  }
+]
