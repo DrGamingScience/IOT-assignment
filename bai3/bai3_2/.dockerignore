@@ -1,0 +1,6 @@
+*
+!requirements.txt
+!common.py
+!producer.py
+!consumer.py
+!verify.py

@@ -1,0 +1,52 @@
+name: bai3-2-canhan
+
+x-app: &app
+  init: true
+  build: .
+  image: bai3-2-python:local
+  environment: &env
+    MSSV: ${MSSV:?Chay init.ps1 truoc}
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_USER: ${RABBITMQ_USER:?Chay init.ps1 truoc}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Chay init.ps1 truoc}
+  depends_on:
+    rabbitmq:
+      condition: service_healthy
+  restart: unless-stopped
+  stop_grace_period: 10s
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.4.0-management
+    hostname: rabbitmq-bai3-2
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?Chay init.ps1 truoc}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Chay init.ps1 truoc}
+    ports:
+      - "127.0.0.1:${AMQP_PORT:-5673}:5672"
+      - "127.0.0.1:${MANAGEMENT_PORT:-15673}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 15s
+    restart: unless-stopped
+  producer:
+    <<: *app
+    command: ["python", "producer.py"]
+    environment:
+      <<: *env
+      STATE_FILE: /state/next_packet.txt
+      INTERVAL_SECONDS: "5"
+    volumes:
+      - producer_state:/state
+  consumer:
+    <<: *app
+    command: ["python", "consumer.py"]
+
+volumes:
+  rabbitmq_data:
+  producer_state:

@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+anh_ket_qua/*
+!anh_ket_qua/.gitkeep
+output/
+*.zip
+HUONG_DAN.md
+Screenshot*.png
+~$*.docx
+.venv/

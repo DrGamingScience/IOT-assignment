@@ -1,0 +1,25 @@
+﻿HƯỚNG DẪN CHẠY
+Nguyễn Trí Hiếu - MSSV 202416203
+
+Yêu cầu: Docker Desktop đang chạy Linux containers.
+Giải nén ZIP và mở PowerShell tại thư mục chứa compose.yaml.
+
+1. Khởi tạo và chạy:
+powershell -NoProfile -ExecutionPolicy Bypass -File .\init.ps1 -Mssv 202416203
+docker compose up --build -d
+docker compose ps
+
+2. Xem dữ liệu gửi và nhận:
+docker compose logs --tail 20 producer consumer
+
+Giao diện RabbitMQ: http://localhost:15673
+Tài khoản và mật khẩu: xem RABBITMQ_USER, RABBITMQ_PASSWORD trong .env được tạo ở bước 1.
+Queue: it4735.202416203.telemetry
+
+3. Kiểm thử tự động (sau khi RabbitMQ healthy):
+powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1
+Kết quả: PASS; log lưu tại output/kiem_tra.txt.
+
+4. Dừng / chạy lại:
+docker compose stop
+docker compose up -d
